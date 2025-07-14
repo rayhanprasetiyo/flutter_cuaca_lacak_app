@@ -1,17 +1,19 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cuaca_lacak/pages/auth/login_page.dart';
 
-class Result extends StatefulWidget {
+class ResultPage extends StatefulWidget {
   final String place;
 
-  const Result({super.key, required this.place});
+  const ResultPage({super.key, required this.place});
 
   @override
-  State<Result> createState() => _ResultState();
+  State<ResultPage> createState() => _ResultPageState();
 }
 
-class _ResultState extends State<Result> {
+class _ResultPageState extends State<ResultPage> {
   late Future<Map<String, dynamic>> _weatherData;
 
   @override
@@ -24,7 +26,7 @@ class _ResultState extends State<Result> {
     try {
       final response = await http.get(
         Uri.parse(
-          "https://api.openweathermap.org/data/2.5/weather?q=${widget.place}&appid=d76ea7244c0c2e07f2abe5f516049ac1&units=metric",
+          "https://api.openweathermap.org/data/2.5/weather?q=${widget.place}&appid=d76ea7244c0c2e07f2abe5f516049ac1&units=metric&lang=id",
         ),
       );
 
@@ -43,16 +45,20 @@ class _ResultState extends State<Result> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Hasil Perkiraan Cuaca",
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.blue,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        title: const Text("Hasil Perkiraan Cuaca"),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('isLoggedIn', false);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -219,6 +225,7 @@ class _ResultState extends State<Result> {
   Widget _buildWeatherInfoCard(String title, String value) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
@@ -228,7 +235,10 @@ class _ResultState extends State<Result> {
               title,
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            Text(value, style: const TextStyle(fontSize: 18)),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            ),
           ],
         ),
       ),
